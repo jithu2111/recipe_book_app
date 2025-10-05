@@ -1,16 +1,51 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
+import '../services/favorites_manager.dart';
 
-class DetailsScreen extends StatelessWidget {
+class DetailsScreen extends StatefulWidget {
   final Recipe recipe;
 
   const DetailsScreen({super.key, required this.recipe});
 
   @override
+  State<DetailsScreen> createState() => _DetailsScreenState();
+}
+
+class _DetailsScreenState extends State<DetailsScreen> {
+  final FavoritesManager _favoritesManager = FavoritesManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _favoritesManager.addListener(_onFavoritesChanged);
+  }
+
+  @override
+  void dispose() {
+    _favoritesManager.removeListener(_onFavoritesChanged);
+    super.dispose();
+  }
+
+  void _onFavoritesChanged() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipe.title),
+        title: Text(widget.recipe.title),
+        actions: [
+          IconButton(
+            onPressed: () {
+              _favoritesManager.toggleFavorite(widget.recipe.id);
+            },
+            icon: Icon(
+              _favoritesManager.isFavorite(widget.recipe.id) ? Icons.favorite : Icons.favorite_border,
+              color: _favoritesManager.isFavorite(widget.recipe.id) ? Colors.red : null,
+            ),
+          ),
+        ],
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: SingleChildScrollView(
@@ -35,12 +70,12 @@ class DetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    recipe.title,
+                    widget.recipe.title,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    recipe.description,
+                    widget.recipe.description,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 16),
@@ -50,21 +85,21 @@ class DetailsScreen extends StatelessWidget {
                         context,
                         Icons.access_time,
                         'Prep Time',
-                        '${recipe.prepTime} min',
+                        '${widget.recipe.prepTime} min',
                       ),
                       const SizedBox(width: 12),
                       _buildInfoCard(
                         context,
                         Icons.timer,
                         'Cook Time',
-                        '${recipe.cookTime} min',
+                        '${widget.recipe.cookTime} min',
                       ),
                       const SizedBox(width: 12),
                       _buildInfoCard(
                         context,
                         Icons.people,
                         'Servings',
-                        '${recipe.servings}',
+                        '${widget.recipe.servings}',
                       ),
                     ],
                   ),
@@ -74,7 +109,7 @@ class DetailsScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 12),
-                  ...recipe.ingredients.map((ingredient) => Padding(
+                  ...widget.recipe.ingredients.map((ingredient) => Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +135,7 @@ class DetailsScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 12),
-                  ...recipe.instructions.asMap().entries.map((entry) {
+                  ...widget.recipe.instructions.asMap().entries.map((entry) {
                     int index = entry.key;
                     String instruction = entry.value;
                     return Padding(
