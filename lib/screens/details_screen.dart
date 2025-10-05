@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
+import '../services/favorites_manager.dart';
 
 class DetailsScreen extends StatefulWidget {
   final Recipe recipe;
@@ -11,7 +12,23 @@ class DetailsScreen extends StatefulWidget {
 }
 
 class _DetailsScreenState extends State<DetailsScreen> {
-  bool isFavorite = false;
+  final FavoritesManager _favoritesManager = FavoritesManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _favoritesManager.addListener(_onFavoritesChanged);
+  }
+
+  @override
+  void dispose() {
+    _favoritesManager.removeListener(_onFavoritesChanged);
+    super.dispose();
+  }
+
+  void _onFavoritesChanged() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +38,11 @@ class _DetailsScreenState extends State<DetailsScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              setState(() {
-                isFavorite = !isFavorite;
-              });
+              _favoritesManager.toggleFavorite(widget.recipe.id);
             },
             icon: Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: isFavorite ? Colors.red : null,
+              _favoritesManager.isFavorite(widget.recipe.id) ? Icons.favorite : Icons.favorite_border,
+              color: _favoritesManager.isFavorite(widget.recipe.id) ? Colors.red : null,
             ),
           ),
         ],
